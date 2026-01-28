@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Japalingo Mobile</title>
+    <style>
+        :root {
+            --primary: #58cc02;
+            --primary-dark: #46a302;
+            --secondary: #1cb0f6;
+            --danger: #ff4b4b;
+            --background: #fff;
+            --text: #3c3c3c;
+            --gray: #e5e5e5;
+            --purple: #ce82ff;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--gray);
+            flex-shrink: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 15px;
+            background-color: var(--gray);
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Mute Button */
+        .mute-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        /* --- Views --- */
+        .view-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+            display: none;
+        }
+        
+        .view-section.active { display: flex; }
+
+        /* --- Start Menu --- */
+        #view-menu { align-items: center; }
+        
+        .chapter-card {
+            background: white;
+            border: 2px solid var(--gray);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--gray);
+            transition: 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chapter-card:active { transform: translateY(4px); box-shadow: none; }
+        
+        .chap-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .chap-info p { margin: 0; color: #888; font-size: 0.9rem; }
+        .chap-score { font-weight: bold; font-size: 1.2rem; color: var(--primary); }
+        .final-test-card { border-color: var(--purple); box-shadow: 0 4px 0 #b356f5; }
+        .final-test-card .chap-score { color: var(--purple); }
+
+        /* --- Game Area --- */
+        #view-game { justify-content: center; align-items: center; }
+
+        .question-card {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer; /* Indicates clickable */
+            transition: transform 0.1s;
+        }
+        .question-card:active { transform: scale(0.98); }
+
+        .question-text { font-size: 2.5rem; font-weight: bold; margin: 0; pointer-events: none; }
+        .sub-text { font-size: 1.1rem; color: #888; margin-top: 5px; min-height: 1.5em; pointer-events: none; }
+
+        /* Hint Icon near text to suggest clickability */
+        .audio-hint { font-size: 1rem; color: var(--secondary); margin-left: 10px; vertical-align: middle; opacity: 0.7; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+        @media (min-width: 400px) { .options-grid { grid-template-columns: 1fr 1fr; } }
+
+        .option-btn {
+            background: white;
+            border: 2px solid var(--gray);
+            border-radius: 16px;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--gray);
+            transition: all 0.1s;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .option-btn:active { transform: translateY(4px); box-shadow: none; }
+        .option-btn.selected { border-color: var(--secondary); background-color: #ddf4ff; color: var(--secondary); }
+        .option-btn.correct { border-color: var(--primary); background-color: #d7ffb8; color: var(--primary-dark); }
+        .option-btn.wrong { border-color: var(--danger); background-color: #ffdfe0; color: var(--danger); }
+
+        /* --- Summary View --- */
+        #view-summary { align-items: center; }
+        
+        .mistake-list { width: 100%; max-width: 400px; margin-top: 20px; }
+        .mistake-item {
+            background: #fff0f0;
+            border: 2px solid #ffcccc;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .mistake-item:active { background: #ffe6e6; }
+        .m-jap { font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .m-eng { color: #555; font-size: 0.9rem; }
+
+        /* --- Footer --- */
+        footer {
+            padding: 20px;
+            border-top: 2px solid var(--gray);
+            background: white;
+            flex-shrink: 0;
+            width: 100%;
+            display: none;
+            justify-content: center;
+        }
+        footer.active { display: flex; }
+
+        button.action-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: 0.1s;
+        }
+        button.action-btn:active { transform: translateY(4px); box-shadow: none; }
+        .check-btn { background-color: var(--primary); color: white; }
+        .check-btn:disabled { background-color: var(--gray); color: #aaa; box-shadow: none; transform: none; }
+
+        /* --- Settings Panel --- */
+        #settings-panel {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+        .panel-box {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+        select, .toggle-row {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 2px solid var(--gray);
+            font-size: 1rem;
+            background: white;
+        }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; border: none; padding: 10px 0; }
+
+        /* --- Feedback Overlay --- */
+        .feedback-overlay {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            padding: 20px 20px 40px 20px;
+            background: white;
+            border-top: 2px solid transparent;
+            z-index: 20;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .feedback-overlay.correct { background-color: #d7ffb8; color: var(--primary-dark); border-color: var(--primary); }
+        .feedback-overlay.wrong { background-color: #ffdfe0; color: var(--danger); border-color: var(--danger); }
+        .feedback-content h2 { margin: 0 0 5px 0; }
+        .feedback-content p { margin: 0 0 20px 0; font-size: 1.1rem; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div style="font-size:1.5rem; cursor:pointer;" onclick="goToMenu()">🏠</div>
+            <div style="font-size:1.5rem; cursor:pointer;" onclick="toggleSettings()">⚙️</div>
+            <div class="header-title" id="header-title">Japalingo</div>
+        </div>
+
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <button class="mute-btn" id="global-mute-btn" onclick="toggleGlobalMute()">🔊</button>
+    </header>
+
+    <main id="view-menu" class="view-section active">
+        <h2 style="margin-bottom:20px;">Select Chapter</h2>
+        <div id="chapter-list" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+        <div style="width:100%; max-width:400px; margin-top:30px;">
+            <button class="action-btn check-btn" onclick="viewAllWords()">See All Words</button>
+        </div>
+    </main>
+
+    <main id="view-game" class="view-section">
+        <div class="question-card" id="q-card" onclick="speakQuestion()">
+            <div class="question-text">
+                <span id="q-text">...</span> 
+                <span class="audio-hint">🔊</span>
+            </div>
+            <div class="sub-text" id="q-sub"></div>
+        </div>
+        <div class="options-grid" id="options-area"></div>
+    </main>
+
+    <main id="view-summary" class="view-section">
+        <h1 style="color:var(--primary); font-size:2rem; margin-bottom:5px;">Session Complete!</h1>
+        <p id="summary-score-text" style="color:#666;"></p>
+        
+        <div id="mistakes-container" style="display:none; width:100%; max-width:400px;">
+            <h3 style="color:var(--danger); border-bottom:1px solid #eee; padding-bottom:10px;">Review words:</h3>
+            <div class="mistake-list" id="mistake-list"></div>
+        </div>
+
+        <div id="perfect-score-msg" style="display:none; font-size:4rem; margin:20px;">🎉</div>
+
+        <div style="width:100%; max-width:400px; margin-top:30px;">
+            <button class="action-btn" style="background:var(--gray); color:#555;" onclick="goToMenu()">Back to Menu</button>
+        </div>
+    </main>
+
+    <footer id="footer-game">
+        <div style="width:100%; max-width:600px;">
+            <button class="action-btn check-btn" id="check-btn" onclick="checkAnswer()" disabled>CHECK</button>
+        </div>
+    </footer>
+
+    <div class="feedback-overlay" id="feedback-panel">
+        <div class="feedback-content">
+            <h2 id="fb-title">Correct!</h2>
+            <p id="fb-detail"></p>
+        </div>
+        <button class="action-btn check-btn" id="continue-btn" onclick="nextCard()">CONTINUE</button>
+    </div>
+
+    <div id="settings-panel" onclick="if(event.target===this) toggleSettings()">
+        <div class="panel-box">
+            <h2>Settings</h2>
+            
+            <label style="font-size:0.8rem; color:#666; display:block; text-align:left;">LANGUAGE MODE</label>
+            <select id="mode-lang" onchange="saveSettings()">
+                <option value="jap_to_eng">Read (Jap -> Eng)</option>
+                <option value="eng_to_jap">Speak (Eng -> Jap)</option>
+            </select>
+            
+            <label style="font-size:0.8rem; color:#666; display:block; text-align:left; margin-top:15px;">DIFFICULTY</label>
+            <select id="mode-diff" onchange="saveSettings()">
+                <option value="easy">Easy (Show Pronunciation)</option>
+                <option value="hard">Hard (Kanji/Kana Only)</option>
+            </select>
+
+            <button style="width:100%; padding:10px; margin-top:20px; background:var(--primary); color:white; border:none; border-radius:10px;" onclick="toggleSettings()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State ---
+        let allWords = [];
+        let sessionQueue = [];
+        let sessionMistakes = [];
+        let currentCard = null;
+        let sessionTotal = 0;
+        let sessionDone = 0;
+        let selectedIndex = -1;
+        let correctIndex = -1;
+        let currentChapterIndex = -1;
+        let userProgress = {};
+        let isGlobalMute = false; // Mute State
+
+        // Settings
+        let settings = { 
+            langMode: 'jap_to_eng', 
+            difficulty: 'easy'
+        };
+
+        const WORDS_PER_CHAPTER = 20;
+
+        // --- Init ---
+        window.onload = async () => {
+            loadSettings();
+            loadProgress();
+            window.speechSynthesis.onvoiceschanged = () => { /* voices loaded */ };
+
+            try {
+                const response = await fetch('words.json');
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                allWords = await response.json();
+                renderMenu();
+            } catch (err) {
+                document.getElementById('view-menu').innerHTML = `<h3 style='color:red; text-align:center; padding:20px;'>Error: Cannot load words.json</h3><p style='text-align:center;'>Use a Local Server (vs code live server).</p>`;
+            }
+        };
+
+        // --- Audio Logic ---
+        function toggleGlobalMute() {
+            isGlobalMute = !isGlobalMute;
+            const btn = document.getElementById('global-mute-btn');
+            if (isGlobalMute) {
+                btn.innerText = "🔇";
+                window.speechSynthesis.cancel();
+            } else {
+                btn.innerText = "🔊";
+            }
+        }
+
+        function speakText(text, langCode) {
+            if (isGlobalMute) return;
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = langCode; 
+            utterance.rate = (langCode === 'ja-JP') ? 0.9 : 1.0; 
+
+            const voices = window.speechSynthesis.getVoices();
+            // Try to pick a specific voice if available for better quality
+            if (langCode === 'ja-JP') {
+                const v = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+                if (v) utterance.voice = v;
+            } else {
+                // English
+                const v = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en-GB'));
+                if (v) utterance.voice = v;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Triggered when clicking the Main Question Card
+        function speakQuestion() {
+            if (!currentCard) return;
+            if (settings.langMode === 'jap_to_eng') {
+                // Question is Japanese
+                speakText(currentCard.kanji_hiragana, 'ja-JP');
+            } else {
+                // Question is English
+                speakText(currentCard.english, 'en-US');
+            }
+        }
+
+        // --- Menu Logic ---
+        function renderMenu() {
+            const list = document.getElementById('chapter-list');
+            list.innerHTML = "";
+            const totalChapters = Math.ceil(allWords.length / WORDS_PER_CHAPTER);
+
+            for (let i = 0; i < totalChapters; i++) {
+                const start = i * WORDS_PER_CHAPTER + 1;
+                const end = Math.min((i + 1) * WORDS_PER_CHAPTER, allWords.length);
+                const score = userProgress[`chap_${i}`] || 0;
+
+                const div = document.createElement('div');
+                div.className = 'chapter-card';
+                div.onclick = () => startSession(i);
+                div.innerHTML = `
+                    <div class="chap-info">
+                        <h3>Chapter ${i + 1}</h3>
+                        <p>Words ${start}-${end}</p>
+                    </div>
+                    <div class="chap-score">${score}%</div>
+                `;
+                list.appendChild(div);
+            }
+
+            const finalBtn = document.createElement('div');
+            finalBtn.className = 'chapter-card final-test-card';
+            finalBtn.onclick = () => startSession(-1);
+            finalBtn.innerHTML = `
+                <div class="chap-info">
+                    <h3 style="color:var(--purple)">Final Test</h3>
+                    <p>Random mix of all words</p>
+                </div>
+                <div class="chap-score">💪</div>
+            `;
+            list.appendChild(finalBtn);
+
+            switchView('view-menu');
+            document.getElementById('header-title').innerText = "Japalingo";
+            document.getElementById('progress-container').style.display = 'none';
+        }
+
+        // --- Game Logic ---
+        function startSession(chapterIdx) {
+            currentChapterIndex = chapterIdx;
+            sessionMistakes = [];
+            
+            if (chapterIdx === -1) {
+                let shuffled = [...allWords].sort(() => 0.5 - Math.random());
+                sessionQueue = shuffled.slice(0, 30);
+            } else {
+                const start = chapterIdx * WORDS_PER_CHAPTER;
+                const end = start + WORDS_PER_CHAPTER;
+                sessionQueue = allWords.slice(start, end).sort(() => 0.5 - Math.random());
+            }
+
+            sessionTotal = sessionQueue.length;
+            sessionDone = 0;
+            updateProgressBar();
+
+            switchView('view-game');
+            document.getElementById('footer-game').style.display = 'flex';
+            document.getElementById('footer-game').classList.add('active');
+            document.getElementById('header-title').innerText = chapterIdx === -1 ? "Final Test" : `Chapter ${chapterIdx + 1}`;
+            document.getElementById('progress-container').style.display = 'block';
+
+            loadCard();
+        }
+
+        function loadCard() {
+            if (sessionQueue.length === 0) {
+                finishSession();
+                return;
+            }
+
+            currentCard = sessionQueue[0];
+            selectedIndex = -1;
+            correctIndex = -1;
+            
+            document.getElementById('feedback-panel').style.display = 'none';
+            document.getElementById('check-btn').disabled = true;
+
+            const qText = document.getElementById('q-text');
+            const qSub = document.getElementById('q-sub');
+            
+            qSub.innerText = "";
+
+            if (settings.langMode === 'jap_to_eng') {
+                // Main Question: Japanese
+                qText.innerText = currentCard.kanji_hiragana;
+                if (settings.difficulty === 'easy') qSub.innerText = currentCard.pronounce;
+                
+                // Auto-speak question if not muted
+                setTimeout(() => speakQuestion(), 100);
+
+            } else {
+                // Main Question: English
+                qText.innerText = currentCard.english;
+                setTimeout(() => speakQuestion(), 100);
+            }
+
+            // Options
+            const grid = document.getElementById('options-area');
+            grid.innerHTML = "";
+            let options = [currentCard];
+            let wrongs = allWords.filter(w => w.item !== currentCard.item).sort(() => 0.5 - Math.random()).slice(0, 3);
+            options = [...options, ...wrongs].sort(() => 0.5 - Math.random());
+
+            options.forEach((opt, idx) => {
+                if(opt.item === currentCard.item) correctIndex = idx;
+                
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                
+                if (settings.langMode === 'jap_to_eng') {
+                    // Options are English
+                    btn.innerText = opt.english;
+                } else {
+                    // Options are Japanese
+                    if (settings.difficulty === 'easy') {
+                        btn.innerHTML = `<strong>${opt.kanji_hiragana}</strong><br><small>${opt.pronounce}</small>`;
+                    } else {
+                        btn.innerText = opt.kanji_hiragana;
+                    }
+                }
+
+                // CLICK HANDLER
+                btn.onclick = () => {
+                    if(document.getElementById('feedback-panel').style.display === 'block') return;
+
+                    // 1. Speak the option content
+                    if (settings.langMode === 'jap_to_eng') {
+                        speakText(opt.english, 'en-US');
+                    } else {
+                        speakText(opt.kanji_hiragana, 'ja-JP');
+                    }
+
+                    // 2. Select visual
+                    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedIndex = idx;
+                    document.getElementById('check-btn').disabled = false;
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer() {
+            const btns = document.querySelectorAll('.option-btn');
+            const panel = document.getElementById('feedback-panel');
+            const title = document.getElementById('fb-title');
+            const detail = document.getElementById('fb-detail');
+
+            panel.style.display = 'block';
+
+            if (selectedIndex === correctIndex) {
+                btns[selectedIndex].classList.add('correct');
+                panel.className = 'feedback-overlay correct';
+                title.innerText = "Correct!";
+                detail.innerText = "";
+                
+                sessionQueue.shift();
+                sessionDone++;
+                updateProgressBar();
+            } else {
+                btns[selectedIndex].classList.add('wrong');
+                btns[correctIndex].classList.add('correct');
+                panel.className = 'feedback-overlay wrong';
+                title.innerText = "Incorrect";
+                detail.innerText = `Answer: ${currentCard.kanji_hiragana} (${currentCard.english})`;
+                
+                // Speak the correct Japanese pronunciation for reinforcement
+                speakText(currentCard.kanji_hiragana, 'ja-JP');
+
+                if (!sessionMistakes.some(m => m.item === currentCard.item)) {
+                    sessionMistakes.push(currentCard);
+                }
+
+                const missed = sessionQueue.shift();
+                const reinsert = Math.min(sessionQueue.length, 3);
+                sessionQueue.splice(reinsert, 0, missed);
+            }
+        }
+
+        function nextCard() { loadCard(); }
+
+        // --- Summary ---
+        function finishSession() {
+            let uniqueItems = (currentChapterIndex === -1) ? 30 : Math.min(WORDS_PER_CHAPTER, allWords.length - (currentChapterIndex * WORDS_PER_CHAPTER));
+            let finalScore = 100;
+            if (sessionMistakes.length > 0) {
+                finalScore = Math.max(0, Math.round(((sessionTotal - sessionMistakes.length) / sessionTotal) * 100));
+            }
+
+            if (currentChapterIndex !== -1) {
+                const oldScore = userProgress[`chap_${currentChapterIndex}`] || 0;
+                if (finalScore > oldScore) {
+                    userProgress[`chap_${currentChapterIndex}`] = finalScore;
+                    saveProgress();
+                }
+            }
+
+            switchView('view-summary');
+            document.getElementById('footer-game').style.display = 'none';
+            
+            document.getElementById('summary-score-text').innerText = `You completed the session with ${finalScore}% accuracy.`;
+            const mistakeContainer = document.getElementById('mistakes-container');
+            const mistakeList = document.getElementById('mistake-list');
+            const perfectMsg = document.getElementById('perfect-score-msg');
+
+            if (sessionMistakes.length > 0) {
+                perfectMsg.style.display = 'none';
+                mistakeContainer.style.display = 'block';
+                mistakeList.innerHTML = "";
+                sessionMistakes.forEach(m => {
+                    const row = document.createElement('div');
+                    row.className = 'mistake-item';
+                    
+                    // Clicking mistake row speaks the Japanese
+                    row.onclick = () => speakText(m.kanji_hiragana, 'ja-JP');
+
+                    row.innerHTML = `
+                        <div class="m-jap">
+                            <div>${m.kanji_hiragana}<br><small>${m.pronounce}</small></div>
+                        </div>
+                        <span class="m-eng">${m.english}</span>
+                    `;
+                    mistakeList.appendChild(row);
+                });
+            } else {
+                mistakeContainer.style.display = 'none';
+                perfectMsg.style.display = 'block';
+            }
+        }
+
+        function goToMenu() { renderMenu(); }
+
+        function viewAllWords() {
+            if (!allWords || allWords.length === 0) {
+                alert('No words available');
+                return;
+            }
+            
+            let html = '<h2>All Words</h2>';
+            html += '<div style="width:100%; max-width:600px; text-align:left;">';
+            
+            allWords.forEach((word, idx) => {
+                html += '<div style="border-bottom: 1px solid var(--gray); padding: 15px 0;">';
+                html += '<div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 5px;">' + (word.kanji || word.hiragana || '') + '</div>';
+                if (word.hiragana && word.hiragana !== word.kanji) {
+                    html += '<div style="color: #888; font-size: 0.95rem; margin-bottom: 5px;">' + word.hiragana + '</div>';
+                }
+                html += '<div style="color: #666; font-size: 1rem;">' + word.english + '</div>';
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            html += '<div style="width:100%; max-width:400px; margin-top:30px;">';
+            html += '<button class="action-btn" style="background:var(--gray); color:#555;" onclick="goToMenu()">Back to Menu</button>';
+            html += '</div>';
+            
+            const menu = document.getElementById('view-menu');
+            menu.innerHTML = html;
+        }
+
+
+        // --- Helpers ---
+        function switchView(id) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function updateProgressBar() {
+            const pct = (sessionDone / sessionTotal) * 100;
+            document.getElementById('progress-bar').style.width = pct + "%";
+        }
+
+        function saveSettings() {
+            settings.langMode = document.getElementById('mode-lang').value;
+            settings.difficulty = document.getElementById('mode-diff').value;
+            localStorage.setItem('jap_settings', JSON.stringify(settings));
+        }
+        function loadSettings() {
+            const s = localStorage.getItem('jap_settings');
+            if(s) settings = JSON.parse(s);
+        }
+        function saveProgress() { localStorage.setItem('jap_progress', JSON.stringify(userProgress)); }
+        function loadProgress() {
+            const p = localStorage.getItem('jap_progress');
+            if(p) userProgress = JSON.parse(p);
+        }
+        function toggleSettings() {
+            const el = document.getElementById('settings-panel');
+            el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+            if(el.style.display === 'flex') {
+                document.getElementById('mode-lang').value = settings.langMode;
+                document.getElementById('mode-diff').value = settings.difficulty;
+            }
+        }
+    </script>
+</body>
+</html>
