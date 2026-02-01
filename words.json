@@ -26,5 +26,15 @@
   { "item": "25", "pronounce": "mimi", "kanji_hiragana": "耳", "english": "Ears" },
   { "item": "26", "pronounce": "mitabu", "kanji_hiragana": "耳たぶ", "english": "Earlobes" },
   { "item": "27", "pronounce": "tadaima", "kanji_hiragana": "ただいま", "english": "I'm home" },
-  { "item": "28", "pronounce": "okaeri", "kanji_hiragana": "おかえり", "english": "Welcome home" }
+  { "item": "28", "pronounce": "okaeri", "kanji_hiragana": "おかえり", "english": "Welcome home" },
+  { "item": "29", "pronounce": "kyouryuu", "kanji_hiragana": "恐竜", "english": "Dinosaur" },
+  { "item": "30", "pronounce": "hontou?", "kanji_hiragana": "本当？", "english": "Really?" },
+  { "item": "31", "pronounce": "betsu ni", "kanji_hiragana": "別に", "english": "Nothing / Not really" },
+  { "item": "32", "pronounce": "saitei", "kanji_hiragana": "最低", "english": "It sucks / The worst" },
+  { "item": "33", "pronounce": "toire ikitai", "kanji_hiragana": "トイレ行きたい", "english": "I need to pee" },
+  { "item": "34", "pronounce": "daijoubu", "kanji_hiragana": "大丈夫", "english": "It's OK" },
+  { "item": "35", "pronounce": "maji de", "kanji_hiragana": "マジで", "english": "Seriously" },
+  { "item": "36", "pronounce": "hidoi", "kanji_hiragana": "ひどい", "english": "Terrible / Cruel" },
+  { "item": "37", "pronounce": "yokatta", "kanji_hiragana": "よかった", "english": "Glad" },
+  { "item": "38", "pronounce": "dou shiyou", "kanji_hiragana": "どうしよう", "english": "What should I do?" }
 ]

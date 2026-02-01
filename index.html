@@ -42,6 +42,7 @@
         }
 
         .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-title { font-weight: 800; font-size: 1.2rem; color: var(--primary); }
 
         .progress-container {
             flex-grow: 1;
@@ -108,6 +109,19 @@
         .final-test-card { border-color: var(--purple); box-shadow: 0 4px 0 #b356f5; }
         .final-test-card .chap-score { color: var(--purple); }
 
+        /* --- Word List View --- */
+        #view-list { align-items: center; }
+        .word-row {
+            width: 100%;
+            max-width: 600px;
+            border-bottom: 1px solid var(--gray);
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+        .word-row:active { background-color: #f9f9f9; }
+
         /* --- Game Area --- */
         #view-game { justify-content: center; align-items: center; }
 
@@ -116,15 +130,13 @@
             max-width: 400px;
             text-align: center;
             margin-bottom: 20px;
-            cursor: pointer; /* Indicates clickable */
+            cursor: pointer;
             transition: transform 0.1s;
         }
         .question-card:active { transform: scale(0.98); }
 
         .question-text { font-size: 2.5rem; font-weight: bold; margin: 0; pointer-events: none; }
         .sub-text { font-size: 1.1rem; color: #888; margin-top: 5px; min-height: 1.5em; pointer-events: none; }
-
-        /* Hint Icon near text to suggest clickability */
         .audio-hint { font-size: 1rem; color: var(--secondary); margin-left: 10px; vertical-align: middle; opacity: 0.7; }
 
         .options-grid {
@@ -279,6 +291,14 @@
         </div>
     </main>
 
+    <main id="view-list" class="view-section">
+        <h2>All Words</h2>
+        <div id="all-words-container" style="width:100%; max-width:600px; text-align:left;"></div>
+        <div style="width:100%; max-width:400px; margin-top:30px;">
+            <button class="action-btn" style="background:var(--gray); color:#555;" onclick="goToMenu()">Back to Menu</button>
+        </div>
+    </main>
+
     <main id="view-game" class="view-section">
         <div class="question-card" id="q-card" onclick="speakQuestion()">
             <div class="question-text">
@@ -323,7 +343,6 @@
     <div id="settings-panel" onclick="if(event.target===this) toggleSettings()">
         <div class="panel-box">
             <h2>Settings</h2>
-            
             <label style="font-size:0.8rem; color:#666; display:block; text-align:left;">LANGUAGE MODE</label>
             <select id="mode-lang" onchange="saveSettings()">
                 <option value="jap_to_eng">Read (Jap -> Eng)</option>
@@ -352,7 +371,7 @@
         let correctIndex = -1;
         let currentChapterIndex = -1;
         let userProgress = {};
-        let isGlobalMute = false; // Mute State
+        let isGlobalMute = false;
 
         // Settings
         let settings = { 
@@ -399,32 +418,26 @@
             utterance.rate = (langCode === 'ja-JP') ? 0.9 : 1.0; 
 
             const voices = window.speechSynthesis.getVoices();
-            // Try to pick a specific voice if available for better quality
             if (langCode === 'ja-JP') {
                 const v = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
                 if (v) utterance.voice = v;
             } else {
-                // English
                 const v = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en-GB'));
                 if (v) utterance.voice = v;
             }
-
             window.speechSynthesis.speak(utterance);
         }
 
-        // Triggered when clicking the Main Question Card
         function speakQuestion() {
             if (!currentCard) return;
             if (settings.langMode === 'jap_to_eng') {
-                // Question is Japanese
                 speakText(currentCard.kanji_hiragana, 'ja-JP');
             } else {
-                // Question is English
                 speakText(currentCard.english, 'en-US');
             }
         }
 
-        // --- Menu Logic ---
+        // --- Navigation Logic ---
         function renderMenu() {
             const list = document.getElementById('chapter-list');
             list.innerHTML = "";
@@ -433,7 +446,7 @@
             for (let i = 0; i < totalChapters; i++) {
                 const start = i * WORDS_PER_CHAPTER + 1;
                 const end = Math.min((i + 1) * WORDS_PER_CHAPTER, allWords.length);
-                const score = userProgress[`chap_${i}`] || 0;
+                const score = parseInt(userProgress[`chap_${i}`] || 0); // Ensure number
 
                 const div = document.createElement('div');
                 div.className = 'chapter-card';
@@ -463,6 +476,38 @@
             switchView('view-menu');
             document.getElementById('header-title').innerText = "Japalingo";
             document.getElementById('progress-container').style.display = 'none';
+        }
+
+        function goToMenu() {
+            // Re-render to ensure scores are updated
+            renderMenu();
+        }
+
+        // --- "See All Words" Logic ---
+        function viewAllWords() {
+            if (!allWords || allWords.length === 0) {
+                alert('No words loaded.');
+                return;
+            }
+            
+            const container = document.getElementById('all-words-container');
+            container.innerHTML = "";
+            
+            allWords.forEach((word) => {
+                const row = document.createElement('div');
+                row.className = 'word-row';
+                // Click to speak Japanese
+                row.onclick = () => speakText(word.kanji_hiragana, 'ja-JP');
+
+                row.innerHTML = `
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 5px;">${word.kanji_hiragana}</div>
+                    <div style="color: #888; font-size: 0.95rem; margin-bottom: 5px;">${word.pronounce}</div>
+                    <div style="color: #666; font-size: 1rem;">${word.english}</div>
+                `;
+                container.appendChild(row);
+            });
+
+            switchView('view-list');
         }
 
         // --- Game Logic ---
@@ -511,20 +556,14 @@
             qSub.innerText = "";
 
             if (settings.langMode === 'jap_to_eng') {
-                // Main Question: Japanese
                 qText.innerText = currentCard.kanji_hiragana;
                 if (settings.difficulty === 'easy') qSub.innerText = currentCard.pronounce;
-                
-                // Auto-speak question if not muted
                 setTimeout(() => speakQuestion(), 100);
-
             } else {
-                // Main Question: English
                 qText.innerText = currentCard.english;
                 setTimeout(() => speakQuestion(), 100);
             }
 
-            // Options
             const grid = document.getElementById('options-area');
             grid.innerHTML = "";
             let options = [currentCard];
@@ -538,10 +577,8 @@
                 btn.className = 'option-btn';
                 
                 if (settings.langMode === 'jap_to_eng') {
-                    // Options are English
                     btn.innerText = opt.english;
                 } else {
-                    // Options are Japanese
                     if (settings.difficulty === 'easy') {
                         btn.innerHTML = `<strong>${opt.kanji_hiragana}</strong><br><small>${opt.pronounce}</small>`;
                     } else {
@@ -549,18 +586,15 @@
                     }
                 }
 
-                // CLICK HANDLER
                 btn.onclick = () => {
                     if(document.getElementById('feedback-panel').style.display === 'block') return;
 
-                    // 1. Speak the option content
                     if (settings.langMode === 'jap_to_eng') {
                         speakText(opt.english, 'en-US');
                     } else {
                         speakText(opt.kanji_hiragana, 'ja-JP');
                     }
 
-                    // 2. Select visual
                     document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
                     selectedIndex = idx;
@@ -594,7 +628,6 @@
                 title.innerText = "Incorrect";
                 detail.innerText = `Answer: ${currentCard.kanji_hiragana} (${currentCard.english})`;
                 
-                // Speak the correct Japanese pronunciation for reinforcement
                 speakText(currentCard.kanji_hiragana, 'ja-JP');
 
                 if (!sessionMistakes.some(m => m.item === currentCard.item)) {
@@ -609,19 +642,24 @@
 
         function nextCard() { loadCard(); }
 
-        // --- Summary ---
+        // --- Summary & Saving ---
         function finishSession() {
             let uniqueItems = (currentChapterIndex === -1) ? 30 : Math.min(WORDS_PER_CHAPTER, allWords.length - (currentChapterIndex * WORDS_PER_CHAPTER));
+            
+            // Calc Score
             let finalScore = 100;
             if (sessionMistakes.length > 0) {
+                // Calculation based on total attempts vs mistakes can be tricky with SRS
+                // Simple version: (Total - UniqueMistakes) / Total
                 finalScore = Math.max(0, Math.round(((sessionTotal - sessionMistakes.length) / sessionTotal) * 100));
             }
 
+            // SAVE PROGRESS LOGIC
             if (currentChapterIndex !== -1) {
-                const oldScore = userProgress[`chap_${currentChapterIndex}`] || 0;
+                const oldScore = parseInt(userProgress[`chap_${currentChapterIndex}`] || 0);
                 if (finalScore > oldScore) {
                     userProgress[`chap_${currentChapterIndex}`] = finalScore;
-                    saveProgress();
+                    saveProgress(); // Calls localStorage.setItem
                 }
             }
 
@@ -640,10 +678,7 @@
                 sessionMistakes.forEach(m => {
                     const row = document.createElement('div');
                     row.className = 'mistake-item';
-                    
-                    // Clicking mistake row speaks the Japanese
                     row.onclick = () => speakText(m.kanji_hiragana, 'ja-JP');
-
                     row.innerHTML = `
                         <div class="m-jap">
                             <div>${m.kanji_hiragana}<br><small>${m.pronounce}</small></div>
@@ -657,37 +692,6 @@
                 perfectMsg.style.display = 'block';
             }
         }
-
-        function goToMenu() { renderMenu(); }
-
-        function viewAllWords() {
-            if (!allWords || allWords.length === 0) {
-                alert('No words available');
-                return;
-            }
-            
-            let html = '<h2>All Words</h2>';
-            html += '<div style="width:100%; max-width:600px; text-align:left;">';
-            
-            allWords.forEach((word, idx) => {
-                html += '<div style="border-bottom: 1px solid var(--gray); padding: 15px 0;">';
-                html += '<div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 5px;">' + (word.kanji || word.hiragana || '') + '</div>';
-                if (word.hiragana && word.hiragana !== word.kanji) {
-                    html += '<div style="color: #888; font-size: 0.95rem; margin-bottom: 5px;">' + word.hiragana + '</div>';
-                }
-                html += '<div style="color: #666; font-size: 1rem;">' + word.english + '</div>';
-                html += '</div>';
-            });
-            
-            html += '</div>';
-            html += '<div style="width:100%; max-width:400px; margin-top:30px;">';
-            html += '<button class="action-btn" style="background:var(--gray); color:#555;" onclick="goToMenu()">Back to Menu</button>';
-            html += '</div>';
-            
-            const menu = document.getElementById('view-menu');
-            menu.innerHTML = html;
-        }
-
 
         // --- Helpers ---
         function switchView(id) {
@@ -709,7 +713,9 @@
             const s = localStorage.getItem('jap_settings');
             if(s) settings = JSON.parse(s);
         }
-        function saveProgress() { localStorage.setItem('jap_progress', JSON.stringify(userProgress)); }
+        function saveProgress() { 
+            localStorage.setItem('jap_progress', JSON.stringify(userProgress)); 
+        }
         function loadProgress() {
             const p = localStorage.getItem('jap_progress');
             if(p) userProgress = JSON.parse(p);
