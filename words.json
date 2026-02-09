@@ -37,4 +37,15 @@
   { "item": "36", "pronounce": "hidoi", "kanji_hiragana": "ひどい", "english": "Terrible / Cruel" },
   { "item": "37", "pronounce": "yokatta", "kanji_hiragana": "よかった", "english": "Glad" },
   { "item": "38", "pronounce": "dou shiyou", "kanji_hiragana": "どうしよう", "english": "What should I do?" }
+  { "item": "39", "pronounce": "tsukiatte kurete arigatou", "kanji_hiragana": "付き合ってくれてありがとう", "english": "Thank you for hanging out" },
+  { "item": "40", "pronounce": "shoujiki", "kanji_hiragana": "正直", "english": "To be honest" },
+  { "item": "41", "pronounce": "sou omou", "kanji_hiragana": "そう思う", "english": "I think so" },
+  { "item": "42", "pronounce": "tereru", "kanji_hiragana": "照れる", "english": "I'm flattered (I'm shy)" },
+  { "item": "43", "pronounce": "wakatta", "kanji_hiragana": "分かった", "english": "Got it" },
+  { "item": "44", "pronounce": "oosugi", "kanji_hiragana": "多すぎ", "english": "Too many" },
+  { "item": "45", "pronounce": "watashi", "kanji_hiragana": "私", "english": "I" },
+  { "item": "46", "pronounce": "ningen", "kanji_hiragana": "人間", "english": "Human" },
+  { "item": "47", "pronounce": "shoshinsha", "kanji_hiragana": "初心者", "english": "Beginner" },
+  { "item": "48", "pronounce": "gaki", "kanji_hiragana": "ガキ", "english": "Brat" },
+  { "item": "49", "pronounce": "yabai", "kanji_hiragana": "やばい", "english": "Crazy / Insane" }
 ]
