@@ -48,4 +48,16 @@
   { "item": "47", "pronounce": "shoshinsha", "kanji_hiragana": "初心者", "english": "Beginner" },
   { "item": "48", "pronounce": "gaki", "kanji_hiragana": "ガキ", "english": "Brat" },
   { "item": "49", "pronounce": "yabai", "kanji_hiragana": "やばい", "english": "Crazy / Insane" }
+  { "item": "50", "pronounce": "itterasshai", "kanji_hiragana": "いってらっしゃい", "english": "Have a good trip / See you" },
+  { "item": "51", "pronounce": "ittekimasu", "kanji_hiragana": "行ってきます", "english": "I'm leaving / I'm off" },
+  { "item": "52", "pronounce": "hayai", "kanji_hiragana": "速い", "english": "Fast / Quick" },
+  { "item": "53", "pronounce": "ame", "kanji_hiragana": "雨", "english": "Rain" },
+  { "item": "54", "pronounce": "konbanwa", "kanji_hiragana": "こんばんは", "english": "Good evening" },
+  { "item": "55", "pronounce": "hajimemashite", "kanji_hiragana": "初めまして", "english": "Nice to meet you" },
+  { "item": "56", "pronounce": "yoroshiku onegaishimasu", "kanji_hiragana": "よろしくお願いします", "english": "Please treat me well / I look forward to working with you" },
+  { "item": "57", "pronounce": "ieie", "kanji_hiragana": "いえいえ", "english": "No, no / Not at all" },
+  { "item": "58", "pronounce": "shitsunaibaki", "kanji_hiragana": "室内履き", "english": "Indoor shoes / Slippers" },
+  { "item": "59", "pronounce": "isogashii", "kanji_hiragana": "忙しい", "english": "Busy" },
+  { "item": "60", "pronounce": "sawagashii", "kanji_hiragana": "騒がしい", "english": "Noisy / Loud" },
+  { "item": "61", "pronounce": "amai", "kanji_hiragana": "甘い", "english": "Sweet" }
 ]
