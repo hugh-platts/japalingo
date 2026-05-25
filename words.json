@@ -59,5 +59,14 @@
   { "item": "58", "pronounce": "shitsunaibaki", "kanji_hiragana": "室内履き", "english": "Indoor shoes / Slippers" },
   { "item": "59", "pronounce": "isogashii", "kanji_hiragana": "忙しい", "english": "Busy" },
   { "item": "60", "pronounce": "sawagashii", "kanji_hiragana": "騒がしい", "english": "Noisy / Loud" },
-  { "item": "61", "pronounce": "amai", "kanji_hiragana": "甘い", "english": "Sweet" }
+  { "item": "61", "pronounce": "amai", "kanji_hiragana": "甘い", "english": "Sweet" },
+  { "item": "62", "pronounce": "hajimeyouka", "kanji_hiragana": "始めようか", "english": "Shall we begin?" },
+  { "item": "63", "pronounce": "wakaruyo", "kanji_hiragana": "分かるよ", "english": "I understand / I get it" },
+  { "item": "64", "pronounce": "betsu ni totemo ii yo", "kanji_hiragana": "別にとてもいいよ", "english": "It's completely fine / I don't mind at all" },
+  { "item": "65", "pronounce": "betsu ni dou demo ii yo", "kanji_hiragana": "別にどうでもいいよ", "english": "I don't care / Whatever" },
+  { "item": "66", "pronounce": "kentou", "kanji_hiragana": "健闘", "english": "Good fight / Fighting spirit" },
+  { "item": "67", "pronounce": "wakarimashita", "kanji_hiragana": "わかりました", "english": "Understood / I see" },
+  { "item": "68", "pronounce": "onegaishimasu", "kanji_hiragana": "お願いします", "english": "Please" },
+  { "item": "69", "pronounce": "hora, ahiru ga iru yo", "kanji_hiragana": "ほら、アヒルがいるよ", "english": "Look, there's a duck" },
+  { "item": "70", "pronounce": "doko e ikeba ii desu ka", "kanji_hiragana": "どこへ行けばいいですか？", "english": "Where should I go?" }
 ]
