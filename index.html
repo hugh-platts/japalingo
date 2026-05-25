@@ -26,6 +26,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
@@ -381,6 +382,11 @@
 
         const WORDS_PER_CHAPTER = 20;
 
+        // --- Service Worker ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+
         // --- Init ---
         window.onload = async () => {
             loadSettings();
@@ -567,7 +573,18 @@
             const grid = document.getElementById('options-area');
             grid.innerHTML = "";
             let options = [currentCard];
-            let wrongs = allWords.filter(w => w.item !== currentCard.item).sort(() => 0.5 - Math.random()).slice(0, 3);
+            const targetLen = settings.langMode === 'jap_to_eng' ? currentCard.english.length : currentCard.kanji_hiragana.length;
+            let wrongs = allWords
+                .filter(w => w.item !== currentCard.item)
+                .sort((a, b) => {
+                    const aLen = settings.langMode === 'jap_to_eng' ? a.english.length : a.kanji_hiragana.length;
+                    const bLen = settings.langMode === 'jap_to_eng' ? b.english.length : b.kanji_hiragana.length;
+                    const aDiff = Math.abs(aLen - targetLen);
+                    const bDiff = Math.abs(bLen - targetLen);
+                    if (aDiff !== bDiff) return aDiff - bDiff;
+                    return Math.random() - 0.5;
+                })
+                .slice(0, 3);
             options = [...options, ...wrongs].sort(() => 0.5 - Math.random());
 
             options.forEach((opt, idx) => {
