@@ -68,5 +68,18 @@
   { "item": "67", "pronounce": "wakarimashita", "kanji_hiragana": "わかりました", "english": "Understood / I see" },
   { "item": "68", "pronounce": "onegaishimasu", "kanji_hiragana": "お願いします", "english": "Please" },
   { "item": "69", "pronounce": "hora, ahiru ga iru yo", "kanji_hiragana": "ほら、アヒルがいるよ", "english": "Look, there's a duck" },
-  { "item": "70", "pronounce": "doko e ikeba ii desu ka", "kanji_hiragana": "どこへ行けばいいですか？", "english": "Where should I go?" }
+  { "item": "70", "pronounce": "doko e ikeba ii desu ka", "kanji_hiragana": "どこへ行けばいいですか？", "english": "Where should I go?" },
+  { "item": "71", "pronounce": "motto mitai", "kanji_hiragana": "もっと見たい", "english": "I want to see more" },
+  { "item": "72", "pronounce": "osoi", "kanji_hiragana": "遅い", "english": "Slow / Late" },
+  { "item": "73", "pronounce": "shawaa o tsukatte mo ii desu ka", "kanji_hiragana": "シャワーを使ってもいいですか？", "english": "May I use the shower?" },
+  { "item": "74", "pronounce": "toire o tsukatte mo ii desu ka", "kanji_hiragana": "トイレを使ってもいいですか？", "english": "May I use the restroom?" },
+  { "item": "75", "pronounce": "koko ni suwatte mo ii desu ka", "kanji_hiragana": "ここに座ってもいいですか？", "english": "May I sit here?" },
+  { "item": "76", "pronounce": "shashin o totte mo ii desu ka", "kanji_hiragana": "写真を撮ってもいいですか？", "english": "May I take a picture?" },
+  { "item": "77", "pronounce": "hai tte mo ii desu ka", "kanji_hiragana": "入ってもいいですか？", "english": "May I come in?" },
+  { "item": "78", "pronounce": "kore o karite mo ii desu ka", "kanji_hiragana": "これを借りてもいいですか？", "english": "May I borrow this?" },
+  { "item": "79", "pronounce": "shitsumon shite mo ii desu ka", "kanji_hiragana": "質問してもいいですか？", "english": "May I ask a question?" },
+  { "item": "80", "pronounce": "menyuu o mite mo ii desu ka", "kanji_hiragana": "メニューを見てもいいですか？", "english": "May I see the menu?" },
+  { "item": "81", "pronounce": "mado o akete mo ii desu ka", "kanji_hiragana": "窓を開けてもいいですか？", "english": "May I open the window?" },
+  { "item": "82", "pronounce": "kurejitto kaado o tsukatte mo ii desu ka", "kanji_hiragana": "クレジットカードを使ってもいいですか？", "english": "May I use a credit card?" },
+  { "item": "83", "pronounce": "nihongo de hanashite mo ii desu ka", "kanji_hiragana": "日本語で話してもいいですか？", "english": "May I speak in Japanese?" }
 ]
