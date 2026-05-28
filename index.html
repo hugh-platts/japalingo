@@ -110,6 +110,20 @@
         .final-test-card { border-color: var(--purple); box-shadow: 0 4px 0 #b356f5; }
         .final-test-card .chap-score { color: var(--purple); }
 
+        /* --- Menu Section Labels --- */
+        .menu-section-label {
+            width: 100%;
+            max-width: 400px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #aaa;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 15px 0 5px 0;
+            padding-left: 4px;
+            align-self: flex-start;
+        }
+
         /* --- Word List View --- */
         #view-list { align-items: center; }
         .word-row {
@@ -430,6 +444,7 @@
         let userFavourites = new Set();
         let currentWordTab = 'vocab';
         let isGlobalMute = false;
+        let sessionWordPool = []; // distractor pool for current session
 
         // Settings
         let settings = { 
@@ -438,6 +453,154 @@
         };
 
         const WORDS_PER_CHAPTER = 20;
+
+        // --- Built-in Sets ---
+        const NUMBERS_EASY = [
+            { item: 'ne_0',  kanji_hiragana: 'ゼロ / れい', pronounce: 'zero / rei',   english: '0 – Zero'  },
+            { item: 'ne_1',  kanji_hiragana: 'いち',         pronounce: 'ichi',          english: '1 – One'   },
+            { item: 'ne_2',  kanji_hiragana: 'に',            pronounce: 'ni',            english: '2 – Two'   },
+            { item: 'ne_3',  kanji_hiragana: 'さん',          pronounce: 'san',           english: '3 – Three' },
+            { item: 'ne_4',  kanji_hiragana: 'し / よん',     pronounce: 'shi / yon',    english: '4 – Four'  },
+            { item: 'ne_5',  kanji_hiragana: 'ご',            pronounce: 'go',            english: '5 – Five'  },
+            { item: 'ne_6',  kanji_hiragana: 'ろく',          pronounce: 'roku',          english: '6 – Six'   },
+            { item: 'ne_7',  kanji_hiragana: 'しち / なな',   pronounce: 'shichi / nana', english: '7 – Seven' },
+            { item: 'ne_8',  kanji_hiragana: 'はち',          pronounce: 'hachi',         english: '8 – Eight' },
+            { item: 'ne_9',  kanji_hiragana: 'く / きゅう',   pronounce: 'ku / kyuu',    english: '9 – Nine'  },
+            { item: 'ne_10', kanji_hiragana: 'じゅう',        pronounce: 'juu',           english: '10 – Ten'  },
+        ];
+
+        const NUMBERS_MEDIUM = [
+            { item: 'nm_10',  kanji_hiragana: 'じゅう',           pronounce: 'juu',       english: '10'  },
+            { item: 'nm_11',  kanji_hiragana: 'じゅういち',       pronounce: 'juuichi',   english: '11'  },
+            { item: 'nm_12',  kanji_hiragana: 'じゅうに',         pronounce: 'juuni',     english: '12'  },
+            { item: 'nm_13',  kanji_hiragana: 'じゅうさん',       pronounce: 'juusan',    english: '13'  },
+            { item: 'nm_14',  kanji_hiragana: 'じゅうよん',       pronounce: 'juuyon',    english: '14'  },
+            { item: 'nm_15',  kanji_hiragana: 'じゅうご',         pronounce: 'juugo',     english: '15'  },
+            { item: 'nm_16',  kanji_hiragana: 'じゅうろく',       pronounce: 'juuroku',   english: '16'  },
+            { item: 'nm_17',  kanji_hiragana: 'じゅうなな',       pronounce: 'juunana',   english: '17'  },
+            { item: 'nm_18',  kanji_hiragana: 'じゅうはち',       pronounce: 'juuhachi',  english: '18'  },
+            { item: 'nm_19',  kanji_hiragana: 'じゅうきゅう',     pronounce: 'juukyuu',   english: '19'  },
+            { item: 'nm_20',  kanji_hiragana: 'にじゅう',         pronounce: 'nijuu',     english: '20'  },
+            { item: 'nm_30',  kanji_hiragana: 'さんじゅう',       pronounce: 'sanjuu',    english: '30'  },
+            { item: 'nm_40',  kanji_hiragana: 'よんじゅう',       pronounce: 'yonjuu',    english: '40'  },
+            { item: 'nm_50',  kanji_hiragana: 'ごじゅう',         pronounce: 'gojuu',     english: '50'  },
+            { item: 'nm_60',  kanji_hiragana: 'ろくじゅう',       pronounce: 'rokujuu',   english: '60'  },
+            { item: 'nm_70',  kanji_hiragana: 'ななじゅう',       pronounce: 'nanajuu',   english: '70'  },
+            { item: 'nm_80',  kanji_hiragana: 'はちじゅう',       pronounce: 'hachijuu',  english: '80'  },
+            { item: 'nm_90',  kanji_hiragana: 'きゅうじゅう',     pronounce: 'kyuujuu',   english: '90'  },
+            { item: 'nm_100', kanji_hiragana: 'ひゃく',          pronounce: 'hyaku',     english: '100' },
+        ];
+
+        const NUMBERS_HARD = [
+            { item: 'nh_100',  kanji_hiragana: 'ひゃく',           pronounce: 'hyaku',     english: '100'  },
+            { item: 'nh_200',  kanji_hiragana: 'にひゃく',         pronounce: 'nihyaku',   english: '200'  },
+            { item: 'nh_300',  kanji_hiragana: 'さんびゃく',       pronounce: 'sanbyaku',  english: '300'  },
+            { item: 'nh_400',  kanji_hiragana: 'よんひゃく',       pronounce: 'yonhyaku',  english: '400'  },
+            { item: 'nh_500',  kanji_hiragana: 'ごひゃく',         pronounce: 'gohyaku',   english: '500'  },
+            { item: 'nh_600',  kanji_hiragana: 'ろっぴゃく',       pronounce: 'roppyaku',  english: '600'  },
+            { item: 'nh_700',  kanji_hiragana: 'ななひゃく',       pronounce: 'nanahyaku', english: '700'  },
+            { item: 'nh_800',  kanji_hiragana: 'はっぴゃく',       pronounce: 'happyaku',  english: '800'  },
+            { item: 'nh_900',  kanji_hiragana: 'きゅうひゃく',     pronounce: 'kyuuhyaku', english: '900'  },
+            { item: 'nh_1000', kanji_hiragana: 'せん',             pronounce: 'sen',       english: '1000' },
+        ];
+
+        const HIRAGANA_SET = [
+            { item: 'h_a',   kanji_hiragana: 'あ', pronounce: 'a',   english: 'a'   },
+            { item: 'h_i',   kanji_hiragana: 'い', pronounce: 'i',   english: 'i'   },
+            { item: 'h_u',   kanji_hiragana: 'う', pronounce: 'u',   english: 'u'   },
+            { item: 'h_e',   kanji_hiragana: 'え', pronounce: 'e',   english: 'e'   },
+            { item: 'h_o',   kanji_hiragana: 'お', pronounce: 'o',   english: 'o'   },
+            { item: 'h_ka',  kanji_hiragana: 'か', pronounce: 'ka',  english: 'ka'  },
+            { item: 'h_ki',  kanji_hiragana: 'き', pronounce: 'ki',  english: 'ki'  },
+            { item: 'h_ku',  kanji_hiragana: 'く', pronounce: 'ku',  english: 'ku'  },
+            { item: 'h_ke',  kanji_hiragana: 'け', pronounce: 'ke',  english: 'ke'  },
+            { item: 'h_ko',  kanji_hiragana: 'こ', pronounce: 'ko',  english: 'ko'  },
+            { item: 'h_sa',  kanji_hiragana: 'さ', pronounce: 'sa',  english: 'sa'  },
+            { item: 'h_shi', kanji_hiragana: 'し', pronounce: 'shi', english: 'shi' },
+            { item: 'h_su',  kanji_hiragana: 'す', pronounce: 'su',  english: 'su'  },
+            { item: 'h_se',  kanji_hiragana: 'せ', pronounce: 'se',  english: 'se'  },
+            { item: 'h_so',  kanji_hiragana: 'そ', pronounce: 'so',  english: 'so'  },
+            { item: 'h_ta',  kanji_hiragana: 'た', pronounce: 'ta',  english: 'ta'  },
+            { item: 'h_chi', kanji_hiragana: 'ち', pronounce: 'chi', english: 'chi' },
+            { item: 'h_tsu', kanji_hiragana: 'つ', pronounce: 'tsu', english: 'tsu' },
+            { item: 'h_te',  kanji_hiragana: 'て', pronounce: 'te',  english: 'te'  },
+            { item: 'h_to',  kanji_hiragana: 'と', pronounce: 'to',  english: 'to'  },
+            { item: 'h_na',  kanji_hiragana: 'な', pronounce: 'na',  english: 'na'  },
+            { item: 'h_ni',  kanji_hiragana: 'に', pronounce: 'ni',  english: 'ni'  },
+            { item: 'h_nu',  kanji_hiragana: 'ぬ', pronounce: 'nu',  english: 'nu'  },
+            { item: 'h_ne',  kanji_hiragana: 'ね', pronounce: 'ne',  english: 'ne'  },
+            { item: 'h_no',  kanji_hiragana: 'の', pronounce: 'no',  english: 'no'  },
+            { item: 'h_ha',  kanji_hiragana: 'は', pronounce: 'ha',  english: 'ha'  },
+            { item: 'h_hi',  kanji_hiragana: 'ひ', pronounce: 'hi',  english: 'hi'  },
+            { item: 'h_fu',  kanji_hiragana: 'ふ', pronounce: 'fu',  english: 'fu'  },
+            { item: 'h_he',  kanji_hiragana: 'へ', pronounce: 'he',  english: 'he'  },
+            { item: 'h_ho',  kanji_hiragana: 'ほ', pronounce: 'ho',  english: 'ho'  },
+            { item: 'h_ma',  kanji_hiragana: 'ま', pronounce: 'ma',  english: 'ma'  },
+            { item: 'h_mi',  kanji_hiragana: 'み', pronounce: 'mi',  english: 'mi'  },
+            { item: 'h_mu',  kanji_hiragana: 'む', pronounce: 'mu',  english: 'mu'  },
+            { item: 'h_me',  kanji_hiragana: 'め', pronounce: 'me',  english: 'me'  },
+            { item: 'h_mo',  kanji_hiragana: 'も', pronounce: 'mo',  english: 'mo'  },
+            { item: 'h_ya',  kanji_hiragana: 'や', pronounce: 'ya',  english: 'ya'  },
+            { item: 'h_yu',  kanji_hiragana: 'ゆ', pronounce: 'yu',  english: 'yu'  },
+            { item: 'h_yo',  kanji_hiragana: 'よ', pronounce: 'yo',  english: 'yo'  },
+            { item: 'h_ra',  kanji_hiragana: 'ら', pronounce: 'ra',  english: 'ra'  },
+            { item: 'h_ri',  kanji_hiragana: 'り', pronounce: 'ri',  english: 'ri'  },
+            { item: 'h_ru',  kanji_hiragana: 'る', pronounce: 'ru',  english: 'ru'  },
+            { item: 'h_re',  kanji_hiragana: 'れ', pronounce: 're',  english: 're'  },
+            { item: 'h_ro',  kanji_hiragana: 'ろ', pronounce: 'ro',  english: 'ro'  },
+            { item: 'h_wa',  kanji_hiragana: 'わ', pronounce: 'wa',  english: 'wa'  },
+            { item: 'h_wo',  kanji_hiragana: 'を', pronounce: 'wo',  english: 'wo'  },
+            { item: 'h_n',   kanji_hiragana: 'ん', pronounce: 'n',   english: 'n'   },
+        ];
+
+        const KATAKANA_SET = [
+            { item: 'k_a',   kanji_hiragana: 'ア', pronounce: 'a',   english: 'a'   },
+            { item: 'k_i',   kanji_hiragana: 'イ', pronounce: 'i',   english: 'i'   },
+            { item: 'k_u',   kanji_hiragana: 'ウ', pronounce: 'u',   english: 'u'   },
+            { item: 'k_e',   kanji_hiragana: 'エ', pronounce: 'e',   english: 'e'   },
+            { item: 'k_o',   kanji_hiragana: 'オ', pronounce: 'o',   english: 'o'   },
+            { item: 'k_ka',  kanji_hiragana: 'カ', pronounce: 'ka',  english: 'ka'  },
+            { item: 'k_ki',  kanji_hiragana: 'キ', pronounce: 'ki',  english: 'ki'  },
+            { item: 'k_ku',  kanji_hiragana: 'ク', pronounce: 'ku',  english: 'ku'  },
+            { item: 'k_ke',  kanji_hiragana: 'ケ', pronounce: 'ke',  english: 'ke'  },
+            { item: 'k_ko',  kanji_hiragana: 'コ', pronounce: 'ko',  english: 'ko'  },
+            { item: 'k_sa',  kanji_hiragana: 'サ', pronounce: 'sa',  english: 'sa'  },
+            { item: 'k_shi', kanji_hiragana: 'シ', pronounce: 'shi', english: 'shi' },
+            { item: 'k_su',  kanji_hiragana: 'ス', pronounce: 'su',  english: 'su'  },
+            { item: 'k_se',  kanji_hiragana: 'セ', pronounce: 'se',  english: 'se'  },
+            { item: 'k_so',  kanji_hiragana: 'ソ', pronounce: 'so',  english: 'so'  },
+            { item: 'k_ta',  kanji_hiragana: 'タ', pronounce: 'ta',  english: 'ta'  },
+            { item: 'k_chi', kanji_hiragana: 'チ', pronounce: 'chi', english: 'chi' },
+            { item: 'k_tsu', kanji_hiragana: 'ツ', pronounce: 'tsu', english: 'tsu' },
+            { item: 'k_te',  kanji_hiragana: 'テ', pronounce: 'te',  english: 'te'  },
+            { item: 'k_to',  kanji_hiragana: 'ト', pronounce: 'to',  english: 'to'  },
+            { item: 'k_na',  kanji_hiragana: 'ナ', pronounce: 'na',  english: 'na'  },
+            { item: 'k_ni',  kanji_hiragana: 'ニ', pronounce: 'ni',  english: 'ni'  },
+            { item: 'k_nu',  kanji_hiragana: 'ヌ', pronounce: 'nu',  english: 'nu'  },
+            { item: 'k_ne',  kanji_hiragana: 'ネ', pronounce: 'ne',  english: 'ne'  },
+            { item: 'k_no',  kanji_hiragana: 'ノ', pronounce: 'no',  english: 'no'  },
+            { item: 'k_ha',  kanji_hiragana: 'ハ', pronounce: 'ha',  english: 'ha'  },
+            { item: 'k_hi',  kanji_hiragana: 'ヒ', pronounce: 'hi',  english: 'hi'  },
+            { item: 'k_fu',  kanji_hiragana: 'フ', pronounce: 'fu',  english: 'fu'  },
+            { item: 'k_he',  kanji_hiragana: 'ヘ', pronounce: 'he',  english: 'he'  },
+            { item: 'k_ho',  kanji_hiragana: 'ホ', pronounce: 'ho',  english: 'ho'  },
+            { item: 'k_ma',  kanji_hiragana: 'マ', pronounce: 'ma',  english: 'ma'  },
+            { item: 'k_mi',  kanji_hiragana: 'ミ', pronounce: 'mi',  english: 'mi'  },
+            { item: 'k_mu',  kanji_hiragana: 'ム', pronounce: 'mu',  english: 'mu'  },
+            { item: 'k_me',  kanji_hiragana: 'メ', pronounce: 'me',  english: 'me'  },
+            { item: 'k_mo',  kanji_hiragana: 'モ', pronounce: 'mo',  english: 'mo'  },
+            { item: 'k_ya',  kanji_hiragana: 'ヤ', pronounce: 'ya',  english: 'ya'  },
+            { item: 'k_yu',  kanji_hiragana: 'ユ', pronounce: 'yu',  english: 'yu'  },
+            { item: 'k_yo',  kanji_hiragana: 'ヨ', pronounce: 'yo',  english: 'yo'  },
+            { item: 'k_ra',  kanji_hiragana: 'ラ', pronounce: 'ra',  english: 'ra'  },
+            { item: 'k_ri',  kanji_hiragana: 'リ', pronounce: 'ri',  english: 'ri'  },
+            { item: 'k_ru',  kanji_hiragana: 'ル', pronounce: 'ru',  english: 'ru'  },
+            { item: 'k_re',  kanji_hiragana: 'レ', pronounce: 're',  english: 're'  },
+            { item: 'k_ro',  kanji_hiragana: 'ロ', pronounce: 'ro',  english: 'ro'  },
+            { item: 'k_wa',  kanji_hiragana: 'ワ', pronounce: 'wa',  english: 'wa'  },
+            { item: 'k_wo',  kanji_hiragana: 'ヲ', pronounce: 'wo',  english: 'wo'  },
+            { item: 'k_n',   kanji_hiragana: 'ン', pronounce: 'n',   english: 'n'   },
+        ];
 
         // --- Service Worker ---
         if ('serviceWorker' in navigator) {
@@ -553,6 +716,53 @@
                 list.appendChild(favBtn);
             }
 
+            // --- Numbers Section ---
+            const numLabel = document.createElement('div');
+            numLabel.className = 'menu-section-label';
+            numLabel.innerText = 'Numbers';
+            list.appendChild(numLabel);
+            [
+                { label: 'Easy (0–10)',   set: NUMBERS_EASY,   idx: -3 },
+                { label: 'Medium (10–100)', set: NUMBERS_MEDIUM, idx: -4 },
+                { label: 'Hard (100–1000)', set: NUMBERS_HARD,   idx: -5 },
+            ].forEach(({ label, set, idx }) => {
+                const card = document.createElement('div');
+                card.className = 'chapter-card';
+                card.style.cssText = 'border-color:var(--secondary); box-shadow:0 4px 0 #0e8fc9;';
+                card.onclick = () => startSession(idx);
+                card.innerHTML = `
+                    <div class="chap-info">
+                        <h3 style="color:var(--secondary)">🔢 Numbers – ${label}</h3>
+                        <p>${set.length} numbers</p>
+                    </div>
+                    <div class="chap-score" style="color:var(--secondary)">123</div>
+                `;
+                list.appendChild(card);
+            });
+
+            // --- Kana Section ---
+            const kanaLabel = document.createElement('div');
+            kanaLabel.className = 'menu-section-label';
+            kanaLabel.innerText = 'Kana Alphabet';
+            list.appendChild(kanaLabel);
+            [
+                { label: 'Hiragana', set: HIRAGANA_SET,  idx: -6 },
+                { label: 'Katakana', set: KATAKANA_SET, idx: -7 },
+            ].forEach(({ label, set, idx }) => {
+                const card = document.createElement('div');
+                card.className = 'chapter-card';
+                card.style.cssText = 'border-color:#ff9500; box-shadow:0 4px 0 #c47300;';
+                card.onclick = () => startSession(idx);
+                card.innerHTML = `
+                    <div class="chap-info">
+                        <h3 style="color:#ff9500">🔤 ${label}</h3>
+                        <p>${set.length} characters</p>
+                    </div>
+                    <div class="chap-score" style="color:#ff9500">あア</div>
+                `;
+                list.appendChild(card);
+            });
+
             switchView('view-menu');
             document.getElementById('header-title').innerText = "Japalingo";
             document.getElementById('progress-container').style.display = 'none';
@@ -633,7 +843,8 @@
         function startSession(chapterIdx) {
             currentChapterIndex = chapterIdx;
             sessionMistakes = [];
-            
+            sessionWordPool = allWords;
+
             if (chapterIdx === -1) {
                 let shuffled = [...allWords].sort(() => 0.5 - Math.random());
                 sessionQueue = shuffled.slice(0, 30);
@@ -644,6 +855,21 @@
                     return;
                 }
                 sessionQueue = [...favWords].sort(() => 0.5 - Math.random());
+            } else if (chapterIdx === -3) {
+                sessionWordPool = NUMBERS_EASY;
+                sessionQueue = [...NUMBERS_EASY].sort(() => 0.5 - Math.random());
+            } else if (chapterIdx === -4) {
+                sessionWordPool = NUMBERS_MEDIUM;
+                sessionQueue = [...NUMBERS_MEDIUM].sort(() => 0.5 - Math.random());
+            } else if (chapterIdx === -5) {
+                sessionWordPool = NUMBERS_HARD;
+                sessionQueue = [...NUMBERS_HARD].sort(() => 0.5 - Math.random());
+            } else if (chapterIdx === -6) {
+                sessionWordPool = HIRAGANA_SET;
+                sessionQueue = [...HIRAGANA_SET].sort(() => 0.5 - Math.random());
+            } else if (chapterIdx === -7) {
+                sessionWordPool = KATAKANA_SET;
+                sessionQueue = [...KATAKANA_SET].sort(() => 0.5 - Math.random());
             } else {
                 const start = chapterIdx * WORDS_PER_CHAPTER;
                 const end = start + WORDS_PER_CHAPTER;
@@ -657,7 +883,12 @@
             switchView('view-game');
             document.getElementById('footer-game').style.display = 'flex';
             document.getElementById('footer-game').classList.add('active');
-            document.getElementById('header-title').innerText = chapterIdx === -1 ? "Final Test" : chapterIdx === -2 ? "⭐ Favourites" : `Chapter ${chapterIdx + 1}`;
+            const sessionTitles = {
+                '-1': 'Final Test', '-2': '⭐ Favourites',
+                '-3': '🔢 0–10', '-4': '🔢 10–100', '-5': '🔢 100–1000',
+                '-6': 'Hiragana', '-7': 'Katakana'
+            };
+            document.getElementById('header-title').innerText = sessionTitles[chapterIdx] || `Chapter ${chapterIdx + 1}`;
             document.getElementById('progress-container').style.display = 'block';
 
             loadCard();
@@ -694,7 +925,7 @@
             grid.innerHTML = "";
             let options = [currentCard];
             const targetLen = settings.langMode === 'jap_to_eng' ? currentCard.english.length : currentCard.kanji_hiragana.length;
-            let wrongs = allWords
+            let wrongs = sessionWordPool
                 .filter(w => w.item !== currentCard.item)
                 .sort((a, b) => {
                     const aLen = settings.langMode === 'jap_to_eng' ? a.english.length : a.kanji_hiragana.length;
