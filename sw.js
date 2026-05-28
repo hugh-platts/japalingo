@@ -1,5 +1,5 @@
-const CACHE_NAME = 'japalingo-v1';
-const ASSETS = [
+const CACHE_NAME = 'japalingo-v2';
+const STATIC_ASSETS = [
     './',
     './index.html',
     './words.json'
@@ -7,7 +7,7 @@ const ASSETS = [
 
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+        caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
     );
     self.skipWaiting();
 });
@@ -21,22 +21,24 @@ self.addEventListener('activate', event => {
     self.clients.claim();
 });
 
+function networkFirst(event) {
+    return fetch(event.request).then(response => {
+        if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+    }).catch(() => caches.match(event.request));
+}
+
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
-    // Network-first for words.json so new words always load when online
-    if (url.pathname.endsWith('words.json')) {
-        event.respondWith(
-            fetch(event.request).then(response => {
-                if (response && response.status === 200) {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            }).catch(() => caches.match(event.request))
-        );
+    // Network-first for HTML and JSON so updates always show when online
+    if (url.pathname.endsWith('.html') || url.pathname.endsWith('.json') || url.pathname === '/' || url.pathname.endsWith('/')) {
+        event.respondWith(networkFirst(event));
         return;
     }
-    // Cache-first for everything else
+    // Cache-first for everything else (images, fonts, etc.)
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
