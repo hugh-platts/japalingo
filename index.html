@@ -537,6 +537,22 @@
             `;
             list.appendChild(finalBtn);
 
+            // Practice Favourites card — only show if user has favourites
+            if (userFavourites.size > 0) {
+                const favBtn = document.createElement('div');
+                favBtn.className = 'chapter-card';
+                favBtn.style.cssText = 'border-color:#f5c518; box-shadow:0 4px 0 #c9a100;';
+                favBtn.onclick = () => startSession(-2);
+                favBtn.innerHTML = `
+                    <div class="chap-info">
+                        <h3 style="color:#c9a100">⭐ Practice Favourites</h3>
+                        <p>${userFavourites.size} word${userFavourites.size === 1 ? '' : 's'} saved</p>
+                    </div>
+                    <div class="chap-score" style="color:#c9a100">⭐</div>
+                `;
+                list.appendChild(favBtn);
+            }
+
             switchView('view-menu');
             document.getElementById('header-title').innerText = "Japalingo";
             document.getElementById('progress-container').style.display = 'none';
@@ -621,6 +637,13 @@
             if (chapterIdx === -1) {
                 let shuffled = [...allWords].sort(() => 0.5 - Math.random());
                 sessionQueue = shuffled.slice(0, 30);
+            } else if (chapterIdx === -2) {
+                const favWords = allWords.filter(w => userFavourites.has(w.item));
+                if (favWords.length === 0) {
+                    alert('No favourites saved yet. Star some words during practice!');
+                    return;
+                }
+                sessionQueue = [...favWords].sort(() => 0.5 - Math.random());
             } else {
                 const start = chapterIdx * WORDS_PER_CHAPTER;
                 const end = start + WORDS_PER_CHAPTER;
@@ -634,7 +657,7 @@
             switchView('view-game');
             document.getElementById('footer-game').style.display = 'flex';
             document.getElementById('footer-game').classList.add('active');
-            document.getElementById('header-title').innerText = chapterIdx === -1 ? "Final Test" : `Chapter ${chapterIdx + 1}`;
+            document.getElementById('header-title').innerText = chapterIdx === -1 ? "Final Test" : chapterIdx === -2 ? "⭐ Favourites" : `Chapter ${chapterIdx + 1}`;
             document.getElementById('progress-container').style.display = 'block';
 
             loadCard();
@@ -773,8 +796,8 @@
                 finalScore = Math.max(0, Math.round(((sessionTotal - sessionMistakes.length) / sessionTotal) * 100));
             }
 
-            // SAVE PROGRESS LOGIC
-            if (currentChapterIndex !== -1) {
+            // SAVE PROGRESS LOGIC — skip for Final Test (-1) and Favourites (-2)
+            if (currentChapterIndex >= 0) {
                 const oldScore = parseInt(userProgress[`chap_${currentChapterIndex}`] || 0);
                 if (finalScore > oldScore) {
                     userProgress[`chap_${currentChapterIndex}`] = finalScore;
