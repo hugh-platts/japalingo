@@ -264,7 +264,55 @@
         .feedback-overlay.correct { background-color: #d7ffb8; color: var(--primary-dark); border-color: var(--primary); }
         .feedback-overlay.wrong { background-color: #ffdfe0; color: var(--danger); border-color: var(--danger); }
         .feedback-content h2 { margin: 0 0 5px 0; }
-        .feedback-content p { margin: 0 0 20px 0; font-size: 1.1rem; }
+        .feedback-content p { margin: 0 0 15px 0; font-size: 1.1rem; }
+
+        /* --- Word List Tabs --- */
+        .word-tabs {
+            display: flex;
+            width: 100%;
+            max-width: 600px;
+            border-bottom: 2px solid var(--gray);
+            flex-shrink: 0;
+            margin-bottom: 0;
+        }
+        .word-tab {
+            flex: 1;
+            padding: 12px 6px;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #aaa;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .word-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* --- Star / Fav Buttons --- */
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .fav-game-btn {
+            background: white;
+            border: 2px solid var(--gray);
+            border-radius: 14px;
+            padding: 0 18px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            transition: 0.1s;
+            flex-shrink: 0;
+        }
+        .fav-game-btn:active { transform: translateY(4px); box-shadow: none; }
+        .fav-game-btn.is-fav { background: #fffbe6; border-color: #f5c518; }
 
     </style>
 </head>
@@ -292,10 +340,14 @@
         </div>
     </main>
 
-    <main id="view-list" class="view-section">
-        <h2>All Words</h2>
-        <div id="all-words-container" style="width:100%; max-width:600px; text-align:left;"></div>
-        <div style="width:100%; max-width:400px; margin-top:30px;">
+    <main id="view-list" class="view-section" style="padding-top:0;">
+        <div class="word-tabs">
+            <button class="word-tab active" data-tab="vocab" onclick="switchWordTab('vocab')">Vocabulary</button>
+            <button class="word-tab" data-tab="phrases" onclick="switchWordTab('phrases')">Phrases</button>
+            <button class="word-tab" data-tab="favs" onclick="switchWordTab('favs')">⭐ Favourites</button>
+        </div>
+        <div id="all-words-container" style="width:100%; max-width:600px; text-align:left; padding-top:5px;"></div>
+        <div style="width:100%; max-width:400px; margin-top:20px; padding-bottom:20px;">
             <button class="action-btn" style="background:var(--gray); color:#555;" onclick="goToMenu()">Back to Menu</button>
         </div>
     </main>
@@ -338,7 +390,10 @@
             <h2 id="fb-title">Correct!</h2>
             <p id="fb-detail"></p>
         </div>
-        <button class="action-btn check-btn" id="continue-btn" onclick="nextCard()">CONTINUE</button>
+        <div style="display:flex; gap:12px; align-items:stretch;">
+            <button class="fav-game-btn" id="fav-game-btn" onclick="toggleFavFromGame()" title="Favourite">☆</button>
+            <button class="action-btn check-btn" id="continue-btn" onclick="nextCard()" style="flex:1; margin:0;">CONTINUE</button>
+        </div>
     </div>
 
     <div id="settings-panel" onclick="if(event.target===this) toggleSettings()">
@@ -372,6 +427,8 @@
         let correctIndex = -1;
         let currentChapterIndex = -1;
         let userProgress = {};
+        let userFavourites = new Set();
+        let currentWordTab = 'vocab';
         let isGlobalMute = false;
 
         // Settings
@@ -391,6 +448,7 @@
         window.onload = async () => {
             loadSettings();
             loadProgress();
+            loadFavourites();
             window.speechSynthesis.onvoiceschanged = () => { /* voices loaded */ };
 
             try {
@@ -495,34 +553,64 @@
                 alert('No words loaded.');
                 return;
             }
-            
-            const container = document.getElementById('all-words-container');
-            container.innerHTML = "";
-
-            function renderWordSection(title, words) {
-                const heading = document.createElement('h3');
-                heading.style.cssText = 'width:100%; border-bottom:2px solid var(--gray); padding-bottom:8px; margin:20px 0 5px 0; color:var(--text);';
-                heading.innerText = title;
-                container.appendChild(heading);
-                words.forEach(word => {
-                    const row = document.createElement('div');
-                    row.className = 'word-row';
-                    row.onclick = () => speakText(word.kanji_hiragana, 'ja-JP');
-                    row.innerHTML = `
-                        <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 5px;">${word.kanji_hiragana}</div>
-                        <div style="color: #888; font-size: 0.95rem; margin-bottom: 5px;">${word.pronounce}</div>
-                        <div style="color: #666; font-size: 1rem;">${word.english}</div>
-                    `;
-                    container.appendChild(row);
-                });
-            }
-
-            const vocab = allWords.filter(w => w.type === 0);
-            const phrases = allWords.filter(w => w.type === 1);
-            if (vocab.length > 0) renderWordSection('Vocabulary', vocab);
-            if (phrases.length > 0) renderWordSection('Phrases & Grammar', phrases);
-
+            currentWordTab = 'vocab';
+            document.querySelectorAll('.word-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.word-tab[data-tab="vocab"]').classList.add('active');
+            renderWordTab('vocab');
             switchView('view-list');
+        }
+
+        function switchWordTab(tab) {
+            currentWordTab = tab;
+            document.querySelectorAll('.word-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.word-tab[data-tab="${tab}"]`).classList.add('active');
+            renderWordTab(tab);
+        }
+
+        function renderWordTab(tab) {
+            const container = document.getElementById('all-words-container');
+            container.innerHTML = '';
+            let words;
+            if (tab === 'vocab') words = allWords.filter(w => w.type === 0);
+            else if (tab === 'phrases') words = allWords.filter(w => w.type === 1);
+            else words = allWords.filter(w => userFavourites.has(w.item));
+
+            if (words.length === 0) {
+                container.innerHTML = '<p style="color:#aaa; text-align:center; margin-top:40px; font-size:1.1rem;">Nothing here yet.</p>';
+                return;
+            }
+            words.forEach(word => {
+                const isFav = userFavourites.has(word.item);
+                const row = document.createElement('div');
+                row.className = 'word-row';
+                row.style.cssText = 'flex-direction:row; justify-content:space-between; align-items:center;';
+
+                const info = document.createElement('div');
+                info.style.flex = '1';
+                info.style.cursor = 'pointer';
+                info.onclick = () => speakText(word.kanji_hiragana, 'ja-JP');
+                info.innerHTML = `
+                    <div style="font-size:1.3rem; font-weight:bold; margin-bottom:4px;">${word.kanji_hiragana}</div>
+                    <div style="color:#888; font-size:0.95rem; margin-bottom:4px;">${word.pronounce}</div>
+                    <div style="color:#666; font-size:1rem;">${word.english}</div>
+                `;
+
+                const starBtn = document.createElement('button');
+                starBtn.className = 'star-btn' + (isFav ? ' is-fav' : '');
+                starBtn.innerText = isFav ? '⭐' : '☆';
+                starBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleFav(word.item);
+                    const nowFav = userFavourites.has(word.item);
+                    starBtn.innerText = nowFav ? '⭐' : '☆';
+                    starBtn.classList.toggle('is-fav', nowFav);
+                    if (currentWordTab === 'favs') renderWordTab('favs');
+                };
+
+                row.appendChild(info);
+                row.appendChild(starBtn);
+                container.appendChild(row);
+            });
         }
 
         // --- Game Logic ---
@@ -638,6 +726,11 @@
 
             panel.style.display = 'block';
 
+            // Update fav button state for current card
+            const favBtn = document.getElementById('fav-game-btn');
+            favBtn.innerText = userFavourites.has(currentCard.item) ? '⭐' : '☆';
+            favBtn.classList.toggle('is-fav', userFavourites.has(currentCard.item));
+
             if (selectedIndex === correctIndex) {
                 btns[selectedIndex].classList.add('correct');
                 panel.className = 'feedback-overlay correct';
@@ -719,10 +812,40 @@
             }
         }
 
+        // --- Favourites ---
+        function toggleFav(itemId) {
+            if (userFavourites.has(itemId)) userFavourites.delete(itemId);
+            else userFavourites.add(itemId);
+            saveFavourites();
+        }
+        function toggleFavFromGame() {
+            if (!currentCard) return;
+            toggleFav(currentCard.item);
+            const btn = document.getElementById('fav-game-btn');
+            const nowFav = userFavourites.has(currentCard.item);
+            btn.innerText = nowFav ? '⭐' : '☆';
+            btn.classList.toggle('is-fav', nowFav);
+        }
+        function saveFavourites() {
+            localStorage.setItem('jap_favs', JSON.stringify([...userFavourites]));
+        }
+        function loadFavourites() {
+            const f = localStorage.getItem('jap_favs');
+            if (f) userFavourites = new Set(JSON.parse(f));
+        }
+
         // --- Helpers ---
         function switchView(id) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            // Always hide feedback overlay when navigating
+            document.getElementById('feedback-panel').style.display = 'none';
+            // Hide game footer when not in game
+            if (id !== 'view-game') {
+                const footer = document.getElementById('footer-game');
+                footer.style.display = 'none';
+                footer.classList.remove('active');
+            }
         }
 
         function updateProgressBar() {
