@@ -498,20 +498,29 @@
             
             const container = document.getElementById('all-words-container');
             container.innerHTML = "";
-            
-            allWords.forEach((word) => {
-                const row = document.createElement('div');
-                row.className = 'word-row';
-                // Click to speak Japanese
-                row.onclick = () => speakText(word.kanji_hiragana, 'ja-JP');
 
-                row.innerHTML = `
-                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 5px;">${word.kanji_hiragana}</div>
-                    <div style="color: #888; font-size: 0.95rem; margin-bottom: 5px;">${word.pronounce}</div>
-                    <div style="color: #666; font-size: 1rem;">${word.english}</div>
-                `;
-                container.appendChild(row);
-            });
+            function renderWordSection(title, words) {
+                const heading = document.createElement('h3');
+                heading.style.cssText = 'width:100%; border-bottom:2px solid var(--gray); padding-bottom:8px; margin:20px 0 5px 0; color:var(--text);';
+                heading.innerText = title;
+                container.appendChild(heading);
+                words.forEach(word => {
+                    const row = document.createElement('div');
+                    row.className = 'word-row';
+                    row.onclick = () => speakText(word.kanji_hiragana, 'ja-JP');
+                    row.innerHTML = `
+                        <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 5px;">${word.kanji_hiragana}</div>
+                        <div style="color: #888; font-size: 0.95rem; margin-bottom: 5px;">${word.pronounce}</div>
+                        <div style="color: #666; font-size: 1rem;">${word.english}</div>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+
+            const vocab = allWords.filter(w => w.type === 0);
+            const phrases = allWords.filter(w => w.type === 1);
+            if (vocab.length > 0) renderWordSection('Vocabulary', vocab);
+            if (phrases.length > 0) renderWordSection('Phrases & Grammar', phrases);
 
             switchView('view-list');
         }
