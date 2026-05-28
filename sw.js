@@ -22,6 +22,21 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+    // Network-first for words.json so new words always load when online
+    if (url.pathname.endsWith('words.json')) {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                if (response && response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            }).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+    // Cache-first for everything else
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
